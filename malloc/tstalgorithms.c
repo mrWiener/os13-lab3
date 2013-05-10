@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
     progname = argv[0];
   else
     progname = "";
+    
   MESSAGE("-- This test checks malloc(), free() and realloc()\n");
   srand((unsigned int)time(NULL));
 
@@ -126,6 +127,7 @@ int main(int argc, char *argv[])
 	}
       calcMemUsage(&maxMem);
     }
+    
 #ifdef MMAP
   end = endHeap();
 #else

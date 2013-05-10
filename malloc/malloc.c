@@ -3,8 +3,26 @@
 #include <string.h> 
 #include <errno.h> 
 #include <sys/mman.h>
+#include <stdio.h>
 
 #define NALLOC 1024                                     /* minimum #units to request */
+
+#define STRATEGY_FIRST_FIT      1
+#define STRATEGY_BEST_FIT       2
+
+#ifndef STRATEGY
+    #define STRATEGY 1
+#endif
+
+#ifdef bajs
+    #ifdef _SC_PAGE_SIZE
+        #define GET_PAGE_SIZE() sysconf(_SC_PAGE_SIZE)
+    #else
+        #define GET_PAGE_SIZE() sysconf(_SC_PAGESIZE)
+    #endif
+#else
+    #define GET_PAGE_SIZE() getpagesize()
+#endif
 
 typedef long Align;                                     /* for alignment to long boundary */
 
@@ -61,6 +79,7 @@ void * endHeap(void)
 }
 #endif
 
+//static FILE* dev_zero_fd = NULL; /* Cached file descriptor for /dev/zero. */
 
 static Header *morecore(unsigned nu)
 {
@@ -74,10 +93,14 @@ static Header *morecore(unsigned nu)
   if(nu < NALLOC)
     nu = NALLOC;
 #ifdef MMAP
-  noPages = ((nu*sizeof(Header))-1)/getpagesize() + 1;
-  cp = mmap(__endHeap, noPages*getpagesize(), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  nu = (noPages*getpagesize())/sizeof(Header);
-  __endHeap += noPages*getpagesize();
+  //if(dev_zero_fd == NULL) {
+  //  dev_zero_fd = fopen("/dev/null", "rb+");
+  //}
+
+  noPages = ((nu*sizeof(Header))-1)/GET_PAGE_SIZE() + 1;
+  cp = mmap(__endHeap, noPages*GET_PAGE_SIZE(), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  nu = (noPages*GET_PAGE_SIZE())/sizeof(Header);
+  __endHeap += noPages*GET_PAGE_SIZE();
 #else
   cp = sbrk(nu*sizeof(Header));
 #endif
@@ -105,21 +128,85 @@ void * malloc(size_t nbytes)
     base.s.ptr = freep = prevp = &base;
     base.s.size = 0;
   }
-  for(p= prevp->s.ptr;  ; prevp = p, p = p->s.ptr) {
-    if(p->s.size >= nunits) {                           /* big enough */
-      if (p->s.size == nunits)                          /* exactly */
-	prevp->s.ptr = p->s.ptr;
-      else {                                            /* allocate tail end */
-	p->s.size -= nunits;
-	p += p->s.size;
-	p->s.size = nunits;
+  
+  if(STRATEGY == STRATEGY_FIRST_FIT) {
+    for(p = prevp->s.ptr;  ; prevp = p, p = p->s.ptr) {
+      if(p->s.size >= nunits) {                           /* big enough */
+        if (p->s.size == nunits)                          /* exactly */
+	        prevp->s.ptr = p->s.ptr;
+        else {                                            /* allocate tail end */
+	        p->s.size -= nunits;
+	        p += p->s.size;
+	        p->s.size = nunits;
+        }
+        freep = prevp;
+        return (void *)(p+1);
       }
-      freep = prevp;
-      return (void *)(p+1);
+      if(p == freep)                                      /* wrapped around free list */
+        if((p = morecore(nunits)) == NULL)
+	    return NULL;                                        /* none left */
     }
-    if(p == freep)                                      /* wrapped around free list */
-      if((p = morecore(nunits)) == NULL)
-	return NULL;                                    /* none left */
+  } else if(STRATEGY == STRATEGY_BEST_FIT) {
+    Header *best = NULL;
+    Header *bestprev = NULL;
+    
+    for(p = prevp->s.ptr;  ; prevp = p, p = p->s.ptr) {
+      if (p->s.size == nunits) {                        /* exactly */
+        prevp->s.ptr = p->s.ptr;
+        best = p;
+        freep = prevp;
+        break;
+      } else if(p->s.size > nunits) {
+        if(best == NULL) {
+          best = p;
+          bestprev = prevp;
+        } else {
+          if(best->s.size > p->s.size) {
+            best = p;
+            bestprev = prevp;
+          }
+        }
+      }
+      
+      if(p == freep) {
+        if(best == NULL) {
+          if((p = morecore(nunits)) == NULL)
+	        return NULL;
+        } else {
+          best->s.size -= nunits;
+	        best += best->s.size;
+	        best->s.size = nunits;
+	        freep = bestprev;
+	        break;
+        }
+	    }
+    }
+  
+    return (void *)(best+1);
   }
+}
+
+void *realloc(void *ptr, size_t size) {
+  void *newptr = malloc(size);
+  
+  if(ptr != NULL) {
+    
+    if(newptr != NULL) {
+      Header *header = (Header*)(ptr - sizeof(Header));
+  
+      unsigned ptrsize = header->s.size*sizeof(Header) - sizeof(Header);
+      unsigned copysize = ptrsize;
+      
+      if(ptrsize > size) {
+        copysize = size;
+      }
+      
+      memcpy(newptr, ptr, copysize);
+    }
+  
+    free(ptr);
+  }
+  
+  return newptr;
 }
 
