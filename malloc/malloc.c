@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include "brk.h"
 #include <unistd.h>
 #include <string.h> 
@@ -14,7 +16,9 @@
     #define STRATEGY 1
 #endif
 
-#ifdef bajs
+#define ANSI_PAGE_SIZE 1
+
+#ifdef ANSI_PAGE_SIZE
     #ifdef _SC_PAGE_SIZE
         #define GET_PAGE_SIZE() sysconf(_SC_PAGE_SIZE)
     #else
@@ -79,8 +83,6 @@ void * endHeap(void)
 }
 #endif
 
-//static FILE* dev_zero_fd = NULL; /* Cached file descriptor for /dev/zero. */
-
 static Header *morecore(unsigned nu)
 {
   void *cp;
@@ -93,10 +95,6 @@ static Header *morecore(unsigned nu)
   if(nu < NALLOC)
     nu = NALLOC;
 #ifdef MMAP
-  //if(dev_zero_fd == NULL) {
-  //  dev_zero_fd = fopen("/dev/null", "rb+");
-  //}
-
   noPages = ((nu*sizeof(Header))-1)/GET_PAGE_SIZE() + 1;
   cp = mmap(__endHeap, noPages*GET_PAGE_SIZE(), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   nu = (noPages*GET_PAGE_SIZE())/sizeof(Header);
