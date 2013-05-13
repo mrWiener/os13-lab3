@@ -16,10 +16,10 @@
     #define STRATEGY 1									/* set first-fit as default strategy */
 #endif
 
-#define ANSI_PAGE_SIZE 1								
+#define ANSI_PAGE_SIZE 1								/* used for replacing 'getpagesize()' */
 
-#ifdef ANSI_PAGE_SIZE
-    #ifdef _SC_PAGE_SIZE
+#ifdef ANSI_PAGE_SIZE									/* use the more portable '_SC_PAGE_SIZE' */
+    #ifdef _SC_PAGE_SIZE								/* check which syntax for '_SC_PAGE_SIZE' to use */
         #define GET_PAGE_SIZE() sysconf(_SC_PAGE_SIZE)
     #else
         #define GET_PAGE_SIZE() sysconf(_SC_PAGESIZE)
