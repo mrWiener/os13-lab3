@@ -36,9 +36,7 @@
 #include "tst.h"
 #include "brk.h"
 
-#include "performance.h"
-
-#define MAXPOSTS 20000
+#define MAXPOSTS 2000
 #define MAXSIZE  2048
 #define MAXITERS 10000
 #define ALLOCATED(i) (memPosts[i].size > 0)
@@ -68,7 +66,6 @@ int main(int argc, char *argv[])
     progname = argv[0];
   else
     progname = "";
-    
   MESSAGE("-- This test checks malloc(), free() and realloc()\n");
   srand((unsigned int)time(NULL));
 
@@ -81,9 +78,7 @@ int main(int argc, char *argv[])
   for(i=0;i<MAXPOSTS;i++)
     {
       memPosts[i].size = rand()%(MAXSIZE/2);
-      startMeasure();
       memPosts[i].ptr = (double*) malloc(memPosts[i].size*sizeof(double));
-      stopMeasure();
       if ( memPosts[i].size == 0 &&  memPosts[i].ptr!= NULL )
 /*	MESSAGE("* ERROR: malloc doesn't return NULL pointer on zero size\n");*/
 		  ;
@@ -108,11 +103,9 @@ int main(int argc, char *argv[])
 	    if(memPosts[index].ptr[0] != (double)3.14)
 	      MESSAGE("* ERROR: Corrupt memory handling\n");
 	    memPosts[index].size = rand()%MAXSIZE;
-	    startMeasure();
 	    memPosts[index].ptr = 
 	      (double*) realloc(memPosts[index].ptr,
-				memPosts[index].size*sizeof(double));
-				stopMeasure(); 
+				memPosts[index].size*sizeof(double)); 
 	    if(memPosts[index].size && memPosts[index].ptr[0] != (double)3.14)
 	      MESSAGE("* ERROR: Corrupt memory handling\n");
 	    if(memPosts[index].size) memPosts[index].ptr[0] = (double)3.14;
@@ -121,23 +114,18 @@ int main(int argc, char *argv[])
 	  {
 	    if(memPosts[index].ptr[0] != (double)3.14)
 	      MESSAGE("* ERROR: Corrupt memory handling\n");
-	      startMeasure();
             free(memPosts[index].ptr);
-            stopMeasure();
             memPosts[index].size = 0;
 	  }
 	}
       else 
 	{
 	  memPosts[index].size = rand()%MAXSIZE;
-	  startMeasure();
 	  memPosts[index].ptr = (double*) malloc(memPosts[index].size*sizeof(double)); 
-	  stopMeasure();
 	  if(memPosts[index].size) memPosts[index].ptr[0] = (double)3.14;
 	}
       calcMemUsage(&maxMem);
     }
-    
 #ifdef MMAP
   end = endHeap();
 #else
@@ -145,12 +133,11 @@ int main(int argc, char *argv[])
 #endif
 
   fprintf(stderr,
-	  "%s: Max memory allocated %d\n%s: Memory consumed %ld\n%s: Time in free/malloc/realloc: %f\n",
+	  "%s: Max memory allocated %d\n%s: Memory consumed %ld\n",
 	  progname,
           maxMem,
 	  progname,
-	  (unsigned long)(end-start),
-	  progname, getMeasuredTime());
+	  (unsigned long)(end-start));
   return 0;
 }
 

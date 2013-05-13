@@ -1,0 +1,61 @@
+Script started on 2013-05-13T15:42:14 CEST
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ gcc -g -ansi -Wall -O4 performance.c tsttime.c -o tsttime
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 92: Using system malloc
+./tsttime: Max memory allocated 167085616
+./tsttime: Memory consumed 175636480
+./tsttime: Time in free/malloc/realloc: 0.070000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 92: Using system malloc
+./tsttime: Max memory allocated 167144680
+./tsttime: Memory consumed 175894528
+./tsttime: Time in free/malloc/realloc: 0.060000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 92: Using system malloc
+./tsttime: Max memory allocated 167639264
+./tsttime: Memory consumed 176599040
+./tsttime: Time in free/malloc/realloc: 0.080000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ gcc -DCUSTOM_MALLOC -DSTRATEGY=1 -g -ansi -Wall -O4 malloc.c performance.c tsttime.c -o tsttime
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 90: Using custom malloc
+./tsttime: Max memory allocated 167944104
+./tsttime: Memory consumed 183767040
+./tsttime: Time in free/malloc/realloc: 11.570000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 90: Using custom malloc
+./tsttime: Max memory allocated 168259424
+./tsttime: Memory consumed 184070144
+./tsttime: Time in free/malloc/realloc: 11.470000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 90: Using custom malloc
+./tsttime: Max memory allocated 167043544
+./tsttime: Memory consumed 182714368
+./tsttime: Time in free/malloc/realloc: 11.540000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ gcc -DCUSTOM_MALLOC-DSTRATEGY=2 -g -ansi -Wall -O4 malloc.c performance.c tsttime.c -o tsttime
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 90: Using custom malloc
+./tsttime: Max memory allocated 167434432
+./tsttime: Memory consumed 175280128
+./tsttime: Time in free/malloc/realloc: 14.530000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 90: Using custom malloc
+./tsttime: Max memory allocated 168284616
+./tsttime: Memory consumed 175951872
+./tsttime: Time in free/malloc/realloc: 15.830000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ ./tsttime 
+./tsttime, line 86: -- This test checks malloc(), free() and realloc()
+./tsttime, line 90: Using custom malloc
+./tsttime: Max memory allocated 167723576
+./tsttime: Memory consumed 175521792
+./tsttime: Time in free/malloc/realloc: 15.270000
+lwiener@karmosin-12:~/git/os13-lab3/malloc$ exit
+
+Script done on 2013-05-13T15:46:49 CEST

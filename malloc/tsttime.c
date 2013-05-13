@@ -32,13 +32,27 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "malloc.h"
-#include "tst.h"
-#include "brk.h"
+
+#ifdef CUSTOM_MALLOC
+  #include "malloc.h"
+  #include "tst.h"
+  #include "brk.h"
+#else
+  #ifndef MESSAGE
+  #define MESSAGE(foo) fprintf(stderr,"%s, line %d: %s", progname, __LINE__, foo)
+  #endif
+  
+  #ifndef	_UNISTD_H /* USE WITH CAUTION brk() and sbrk() have been removed from the POSIX standard, most systems implement them but the parameter types may vary */
+  extern int brk(void *);
+  extern void *sbrk( );
+  #endif
+  
+  #include <unistd.h>
+#endif
 
 #include "performance.h"
 
-#define MAXPOSTS 20000
+#define MAXPOSTS 2000*20
 #define MAXSIZE  2048
 #define MAXITERS 10000
 #define ALLOCATED(i) (memPosts[i].size > 0)
@@ -71,6 +85,12 @@ int main(int argc, char *argv[])
     
   MESSAGE("-- This test checks malloc(), free() and realloc()\n");
   srand((unsigned int)time(NULL));
+
+#ifdef CUSTOM_MALLOC
+  MESSAGE("Using custom malloc\n");
+#else
+  MESSAGE("Using system malloc\n");
+#endif
 
 #ifdef MMAP
   start = endHeap();
