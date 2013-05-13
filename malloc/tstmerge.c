@@ -11,14 +11,15 @@ Author: Robert Rönngren 050218
 #include "brk.h"
 #include <unistd.h>
 
+#include "performance.h" /* Used for time measurement. */
+
 #define SIZE 16384
 
 int main(int argc, char * argv[])
 {
-  
   void *p1, *p2,  *oldBrk, *newBrk1, *newBrk2;
   unsigned long largeSize = SIZE;
-
+  
 #ifdef MMAP
     oldBrk = endHeap();
 #else
@@ -49,10 +50,10 @@ int main(int argc, char * argv[])
 #else
     newBrk1 = (void *) sbrk(0);
 #endif
-
+  
   free(p1);
   free(p2);
-
+  
   p1 = (void *)malloc(largeSize * 2);
 
   if(p1 == NULL) printf("* ERROR: unable to allocate memory of size %u bytes\n", (unsigned)largeSize);
@@ -67,5 +68,6 @@ int main(int argc, char * argv[])
     printf("* ERROR: not good enough usage of memory (probably incorrect merging of deallocated memory blocks)\nYour implementation used %u bytes more than expected\n", ((unsigned)(newBrk2-newBrk1)));
   else
     printf("Test passed OK\n");
+    
   exit(0);
 }
