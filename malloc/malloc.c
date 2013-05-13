@@ -9,18 +9,18 @@
 
 #define NALLOC 1024                                     /* minimum #units to request */
 
-#define STRATEGY_FIRST_FIT      1						/* used to make malloc use strategy first-fit */
-#define STRATEGY_BEST_FIT       2						/* used to make malloc use strategy best-fit */
-#define STRATEGY_WORST_FIT      3           /* used to make malloc use strategy worst-fit */
+#define STRATEGY_FIRST_FIT      1                       /* used to make malloc use strategy first-fit */
+#define STRATEGY_BEST_FIT       2                       /* used to make malloc use strategy best-fit */
+#define STRATEGY_WORST_FIT      3                       /* used to make malloc use strategy worst-fit */
 
 #ifndef STRATEGY										
-    #define STRATEGY 1									/* set first-fit as default strategy */
+    #define STRATEGY 1                                  /* set first-fit as default strategy */
 #endif
 
-#define ANSI_PAGE_SIZE 1								/* used for replacing 'getpagesize()' */
+#define ANSI_PAGE_SIZE 1                                /* used for replacing 'getpagesize()' */
 
-#ifdef ANSI_PAGE_SIZE									/* use the more portable '_SC_PAGE_SIZE' */
-    #ifdef _SC_PAGE_SIZE								/* check which syntax for '_SC_PAGE_SIZE' to use */
+#ifdef ANSI_PAGE_SIZE                                   /* use the more portable '_SC_PAGE_SIZE' */
+    #ifdef _SC_PAGE_SIZE                                /* check which syntax for '_SC_PAGE_SIZE' to use */
         #define GET_PAGE_SIZE() sysconf(_SC_PAGE_SIZE)
     #else
         #define GET_PAGE_SIZE() sysconf(_SC_PAGESIZE)
