@@ -11,6 +11,7 @@
 
 #define STRATEGY_FIRST_FIT      1						/* used to make malloc use strategy first-fit */
 #define STRATEGY_BEST_FIT       2						/* used to make malloc use strategy best-fit */
+#define STRATEGY_WORST_FIT      3           /* used to make malloc use strategy worst-fit */
 
 #ifndef STRATEGY										
     #define STRATEGY 1									/* set first-fit as default strategy */
@@ -179,8 +180,44 @@ void * malloc(size_t nbytes)
         }
 	    }
     }
+    
+    return (void *)(best+1);								/* return the block with the best match */ 
+  } else if(STRATEGY == STRATEGY_WORST_FIT) {				/* use malloc strategy best-fit */
+    Header *worst = NULL;									/* header to the current block with best fit */
+    Header *worstprev = NULL;								/* previous header to header 'best' */
+    
+    for(p = prevp->s.ptr;  ; prevp = p, p = p->s.ptr) {
+      if(p->s.size >= nunits) {						/* big enough but not exactly */
+        if(worst == NULL) {									/* first possible match is of course the current best match */
+          worst = p;
+          worstprev = prevp;
+        } else {											/* a match has been found earlier */
+          if(worst->s.size < p->s.size) {					/* only change best match if better */
+            worst = p;
+            worstprev = prevp;
+          }
+        }
+      }
+      
+      if(p == freep) {										/* entire free list has been checked */
+        if(worst == NULL) {									/* no match found */
+          if((p = morecore(nunits)) == NULL)				/* try to get more memory, return null if not possible */
+	        return NULL;
+        } else if(worst->s.size > nunits) {											/* a best match was found that was not a exact match */
+			worst->s.size -= nunits;							/* remove needed space from the free block */
+			worst += worst->s.size;							/* make 'best' a header over the removed space */
+	        worst->s.size = nunits;							/* set the size to be equal to the removed space*/
+	        freep = worstprev;								
+	        break;
+        } else {
+          worstprev->s.ptr = worst->s.ptr;
+          freep = worstprev;
+          break;
+        }
+	    }
+    }
   
-    return (void *)(best+1);								/* return the block with the best match */
+    return (void *)(worst+1);								/* return the block with the best match */
   }
 }
 
