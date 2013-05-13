@@ -63,11 +63,11 @@ void free(void * ap)
   }
   else
     bp->s.ptr = p->s.ptr;
-  if(p + p->s.size == bp) {                             /* join to lower nbr */
-    p->s.size += bp->s.size;
-    p->s.ptr = bp->s.ptr;
-  } else
-    p->s.ptr = bp;
+    if(p + p->s.size == bp) {                             /* join to lower nbr */
+      p->s.size += bp->s.size;
+      p->s.ptr = bp->s.ptr;
+    } else
+      p->s.ptr = bp;
   freep = p;
 }
 
