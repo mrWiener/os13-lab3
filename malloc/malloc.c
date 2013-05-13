@@ -128,12 +128,12 @@ void * malloc(size_t nbytes)
     base.s.size = 0;
   }
   
-  if(STRATEGY == STRATEGY_FIRST_FIT) {					  	/* use malloc strategy first-fit */
+  if(STRATEGY == STRATEGY_FIRST_FIT) {                      /* use malloc strategy first-fit */
     for(p = prevp->s.ptr;  ; prevp = p, p = p->s.ptr) {
-      if(p->s.size >= nunits) {                           	/* big enough */
-        if (p->s.size == nunits)                         	/* exactly */
+      if(p->s.size >= nunits) {                             /* big enough */
+        if (p->s.size == nunits)                            /* exactly */
 	        prevp->s.ptr = p->s.ptr;
-        else {                                            	/* allocate tail end */
+        else {                                              /* allocate tail end */
 	        p->s.size -= nunits;
 	        p += p->s.size;
 	        p->s.size = nunits;
@@ -141,75 +141,75 @@ void * malloc(size_t nbytes)
         freep = prevp;
         return (void *)(p+1);
       }
-      if(p == freep)                                      	/* wrapped around free list */
+      if(p == freep)                                        /* wrapped around free list */
         if((p = morecore(nunits)) == NULL)
-	    return NULL;                                        /* none left */
+	    return NULL;                                          /* none left */
     }
-  } else if(STRATEGY == STRATEGY_BEST_FIT) {				/* use malloc strategy best-fit */
-    Header *best = NULL;									/* header to the current block with best fit */
-    Header *bestprev = NULL;								/* previous header to header 'best' */
+  } else if(STRATEGY == STRATEGY_BEST_FIT) {                /* use malloc strategy best-fit */
+    Header *best = NULL;                                    /* header to the current block with best fit */
+    Header *bestprev = NULL;                                /* previous header to header 'best' */
     
     for(p = prevp->s.ptr;  ; prevp = p, p = p->s.ptr) {
-      if (p->s.size == nunits) {                        	/* exactly */
+      if (p->s.size == nunits) {                            /* exactly */
         prevp->s.ptr = p->s.ptr;						
-        best = p;											/* set the best header */
+        best = p;                                           /* set the best header */
         freep = prevp;
-        break;												/* no need to continue, better match not possible */
-      } else if(p->s.size > nunits) {						/* big enough but not exactly */
-        if(best == NULL) {									/* first possible match is of course the current best match */
+        break;                                              /* no need to continue, better match not possible */
+      } else if(p->s.size > nunits) {                       /* big enough but not exactly */
+        if(best == NULL) {                                  /* first possible match is of course the current best match */
           best = p;
           bestprev = prevp;
-        } else {											/* a match has been found earlier */
-          if(best->s.size > p->s.size) {					/* only change best match if better */
+        } else {                                            /* a match has been found earlier */
+          if(best->s.size > p->s.size) {                    /* only change best match if better */
             best = p;
             bestprev = prevp;
           }
         }
       }
       
-      if(p == freep) {										/* entire free list has been checked */
-        if(best == NULL) {									/* no match found */
-          if((p = morecore(nunits)) == NULL)				/* try to get more memory, return null if not possible */
+      if(p == freep) {                                      /* entire free list has been checked */
+        if(best == NULL) {                                  /* no match found */
+          if((p = morecore(nunits)) == NULL)                /* try to get more memory, return null if not possible */
 	        return NULL;
-        } else {											/* a best match was found that was not a exact match */
-			best->s.size -= nunits;							/* remove needed space from the free block */
-			best += best->s.size;							/* make 'best' a header over the removed space */
-	        best->s.size = nunits;							/* set the size to be equal to the removed space*/
+        } else {                                            /* a best match was found that was not a exact match */
+			best->s.size -= nunits;                               /* remove needed space from the free block */
+			best += best->s.size;                                 /* make 'best' a header over the removed space */
+	        best->s.size = nunits;                            /* set the size to be equal to the removed space*/
 	        freep = bestprev;								
 	        break;
         }
 	    }
     }
     
-    return (void *)(best+1);								/* return the block with the best match */ 
-  } else if(STRATEGY == STRATEGY_WORST_FIT) {				/* use malloc strategy best-fit */
-    Header *worst = NULL;									/* header to the current block with best fit */
-    Header *worstprev = NULL;								/* previous header to header 'best' */
+    return (void *)(best+1);                                /* return the block with the best match */ 
+  } else if(STRATEGY == STRATEGY_WORST_FIT) {               /* use malloc strategy worst-fit */
+    Header *worst = NULL;                                   /* header to the current block with worst fit */
+    Header *worstprev = NULL;                               /* previous header to header 'worst' */
     
     for(p = prevp->s.ptr;  ; prevp = p, p = p->s.ptr) {
-      if(p->s.size >= nunits) {						/* big enough but not exactly */
-        if(worst == NULL) {									/* first possible match is of course the current best match */
+      if(p->s.size >= nunits) {                             /* big enough */
+        if(worst == NULL) {                                 /* first possible match is of course the current worst match */
           worst = p;
           worstprev = prevp;
-        } else {											/* a match has been found earlier */
-          if(worst->s.size < p->s.size) {					/* only change best match if better */
+        } else {                                            /* a match has been found earlier */
+          if(worst->s.size < p->s.size) {                   /* only change worst match if worse */
             worst = p;
             worstprev = prevp;
           }
         }
       }
       
-      if(p == freep) {										/* entire free list has been checked */
-        if(worst == NULL) {									/* no match found */
-          if((p = morecore(nunits)) == NULL)				/* try to get more memory, return null if not possible */
+      if(p == freep) {                                      /* entire free list has been checked */
+        if(worst == NULL) {                                 /* no match found */
+          if((p = morecore(nunits)) == NULL)                /* try to get more memory, return null if not possible */
 	        return NULL;
-        } else if(worst->s.size > nunits) {											/* a best match was found that was not a exact match */
-			worst->s.size -= nunits;							/* remove needed space from the free block */
-			worst += worst->s.size;							/* make 'best' a header over the removed space */
-	        worst->s.size = nunits;							/* set the size to be equal to the removed space*/
+        } else if(worst->s.size > nunits) {                 /* a worst match was found that was not a exact match */
+          worst->s.size -= nunits;                          /* remove needed space from the free block */
+          worst += worst->s.size;                           /* make 'worst' a header over the removed space */
+	        worst->s.size = nunits;                           /* set the size to be equal to the removed space*/
 	        freep = worstprev;								
 	        break;
-        } else {
+        } else {                                            /* a worst match was found that was a exact match */
           worstprev->s.ptr = worst->s.ptr;
           freep = worstprev;
           break;
@@ -217,7 +217,7 @@ void * malloc(size_t nbytes)
 	    }
     }
   
-    return (void *)(worst+1);								/* return the block with the best match */
+    return (void *)(worst+1);                               /* return the block with the worst match */
   }
 }
 
